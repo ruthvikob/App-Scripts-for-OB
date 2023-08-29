@@ -1,29 +1,38 @@
-
-
 function sendNotifications() {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Deliverables');
   var data = sheet.getDataRange().getValues();
 
   var webhookUrls = {
     'Abhihaas': 'https://obladicreatives.webhook.office.com/webhookb2/3cb0cfa6-150d-4350-bb29-275e37556302@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/2f564b6021c14174bc936c27603da911/6469a637-11c4-4403-aba4-5c1d6b01f777',
+    // ... other webhook URLs
   };
 
-  var upcomingMilestonesByPerson = {}; // Object to store upcoming milestones for each person
+  for (var person in webhookUrls) {
+    var personData = data.filter(function(row) {
+      return row[5] === person; // Assuming person's name is in column F (index 5)
+    });
 
+    if (personData.length > 0) {
+      processPersonData(person, personData, webhookUrls);
+    }
+  }
+}
+
+function processPersonData(personName, data, webhookUrls) {
+  var upcomingMilestonesByPerson = {}; // Object to store upcoming milestones for each person
   var today = new Date();
   today.setHours(0, 0, 0, 0); // Set time to start of the day
 
-  for (var i = 1; i < data.length; i++) {
+  for (var i = 0; i < data.length; i++) {
     for (var milestone = 1; milestone <= 3; milestone++) {
       var milestoneDate = new Date(data[i][6 + (milestone - 1) * 2]); // Assuming milestone dates are in columns G, I, K (indexes 6, 8, 10)
       var milestoneStatus = data[i][7 + (milestone - 1) * 2]; // Assuming milestone status is in columns H, J, L (indexes 7, 9, 11)
 
-      // Check if milestone is due on or before today and status is not one of the specified statuses
       if (milestoneDate <= today && !['Completed', 'Cancelled', 'Delayed'].includes(milestoneStatus)) {
-        var personName = data[i][5]; // Assuming the person's name is in column E (index 4)
+        var personName = data[i][5]; // Assuming the person's name is in column F (index 5)
         var brandName = data[i][0]; // Assuming the brand name is in column A (index 0)
+        var deliverable = data[i][4]; // Assuming the deliverable is in column E (index 4)
 
-        // Add milestone to the upcomingMilestonesByPerson object
         if (!upcomingMilestonesByPerson[personName]) {
           upcomingMilestonesByPerson[personName] = [];
         }
@@ -31,20 +40,18 @@ function sendNotifications() {
         upcomingMilestonesByPerson[personName].push({
           brandName: brandName,
           milestone: 'Milestone ' + milestone,
-          milestoneDate: Utilities.formatDate(milestoneDate, Session.getScriptTimeZone(), 'dd MMM yyyy')
+          milestoneDate: Utilities.formatDate(milestoneDate, Session.getScriptTimeZone(), 'dd MMM yyyy'),
+          deliverable: deliverable
         });
       }
     }
   }
 
-  // Send message to corresponding Teams channel for each person
-  for (var person in webhookUrls) {
-    var webhookUrl = webhookUrls[person];
-    var upcomingMilestones = upcomingMilestonesByPerson[person] || [];
+  var webhookUrl = webhookUrls[personName];
+  var upcomingMilestones = upcomingMilestonesByPerson[personName] || [];
 
-    if (upcomingMilestones.length > 0) {
-      sendToTeamsChannel(webhookUrl, person, upcomingMilestones);
-    }
+  if (upcomingMilestones.length > 0) {
+    sendToTeamsChannel(webhookUrl, personName, upcomingMilestones);
   }
 }
 
