@@ -1,0 +1,227 @@
+
+
+function sendNotifications() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Master');
+  var data = sheet.getDataRange().getValues();
+
+ 
+
+  var webhookUrls = {
+    'Indra': 'https://obladicreatives.webhook.office.com/webhookb2/2cb706da-dcf9-4a6d-b170-b23bb28ede48@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/d75a9e9ab467419eb35517d12c0b2cc2/a43b85d5-3756-4a60-95f0-a773d1c1941f', // Replace 'Name1' with the person's name and 'WEBHOOK_URL_FOR_NAME1' with their corresponding webhook URL
+    'Abhihaas': 'https://obladicreatives.webhook.office.com/webhookb2/2cb706da-dcf9-4a6d-b170-b23bb28ede48@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/43a395ec15354b15b83f033cb8c669a8/a43b85d5-3756-4a60-95f0-a773d1c1941f',
+    'Satya': 'https://obladicreatives.webhook.office.com/webhookb2/2cb706da-dcf9-4a6d-b170-b23bb28ede48@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/a7f7e9c071624394836aa1c22b1845af/a43b85d5-3756-4a60-95f0-a773d1c1941f',
+    'Tanisha': 'https://obladicreatives.webhook.office.com/webhookb2/2cb706da-dcf9-4a6d-b170-b23bb28ede48@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/00942e49c49e43a6bef9a719ad3ceffb/a43b85d5-3756-4a60-95f0-a773d1c1941f',
+    'Ruthvik': 'https://obladicreatives.webhook.office.com/webhookb2/58ccded9-2606-49ac-817d-a2c3882fc4ec@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/72343686f9d843a0999f659e46d83e6d/a43b85d5-3756-4a60-95f0-a773d1c1941f', // Add more entries for other team members
+    'Debiprasad': 'https://obladicreatives.webhook.office.com/webhookb2/58ccded9-2606-49ac-817d-a2c3882fc4ec@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/0eca17d18d5449479a8a3fe2e123737a/a43b85d5-3756-4a60-95f0-a773d1c1941f',
+    'Tanmay': 'https://obladicreatives.webhook.office.com/webhookb2/58ccded9-2606-49ac-817d-a2c3882fc4ec@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/ec15b742eb04401ca0b4f4a53f6a3a39/a43b85d5-3756-4a60-95f0-a773d1c1941f',
+    'Vamsi': 'https://obladicreatives.webhook.office.com/webhookb2/2cb706da-dcf9-4a6d-b170-b23bb28ede48@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/bac2fae33f5f4e759438db9467090546/a43b85d5-3756-4a60-95f0-a773d1c1941f',
+    'Siva': 'https://obladicreatives.webhook.office.com/webhookb2/2cb706da-dcf9-4a6d-b170-b23bb28ede48@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/2a5fdd5d5271420f964375faf32351cf/a43b85d5-3756-4a60-95f0-a773d1c1941f',
+    'Krrish': 'https://obladicreatives.webhook.office.com/webhookb2/58ccded9-2606-49ac-817d-a2c3882fc4ec@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/97b5ba0e400d4267a2e98bd354bcfff4/a43b85d5-3756-4a60-95f0-a773d1c1941f',
+    'Anoushka': 'https://obladicreatives.webhook.office.com/webhookb2/58ccded9-2606-49ac-817d-a2c3882fc4ec@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/aea02e46988c4f5ba04b5d9e24d8ab03/a43b85d5-3756-4a60-95f0-a773d1c1941f',
+    'Anjani': 'https://obladicreatives.webhook.office.com/webhookb2/2cb706da-dcf9-4a6d-b170-b23bb28ede48@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/78569747c0e642bbbbbc1ef480c451b3/a43b85d5-3756-4a60-95f0-a773d1c1941f',
+    'Srusti': 'https://obladicreatives.webhook.office.com/webhookb2/2cb706da-dcf9-4a6d-b170-b23bb28ede48@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/75de3513b6d3428ea4e2dfc29f4619cc/a43b85d5-3756-4a60-95f0-a773d1c1941f', 
+    
+    // Add more entries as needed for other team members and their respective webhook URLs
+  };
+
+ 
+
+  var tasksByPerson = {}; // Object to store tasks for each person
+  var tasksDueTodayByPerson = {}; // Object to store tasks due today for each person
+
+ 
+
+  var today = new Date();
+  today.setHours(0, 0, 0, 0); // Set time to start of the day
+ 
+
+ 
+
+  for (var i = 1; i < data.length; i++) {
+
+    var taskDueDate = new Date(data[i][11]); // Assuming task due date is in column L (index 11)
+
+    var taskStatus = data[i][12]; // Assuming task status is in column M (index 12)
+
+ 
+
+ 
+
+ 
+
+    // Check if task is due today or after today and status is not one of the specified statuses
+
+    if (taskDueDate < today && !['Completed', 'Cancelled / Postponed', 'Delayed (Internal)'].includes(taskStatus)) {
+
+      var personName = data[i][8]; // Assuming the person's name is in column I (index 8)
+
+      var brandName = data[i][5]; // Assuming the brand name is in column F (index 5)
+
+      var taskBrief = data[i][10]; // Assuming the task/brief is in column K (index 10)
+
+      var taskDueDateString = Utilities.formatDate(taskDueDate, Session.getScriptTimeZone(), 'dd MMM yyyy');
+
+ 
+
+ 
+
+ 
+
+      // Add task to the tasksByPerson object
+
+      if (!tasksByPerson[personName]) {
+
+        tasksByPerson[personName] = [];
+
+      }
+
+      tasksByPerson[personName].push({
+
+        brandName: brandName,
+
+        taskBrief: taskBrief,
+
+        taskDueDate: taskDueDateString
+
+      });
+
+    }
+
+ 
+
+ 
+
+ 
+
+    // Check if task is due today and status is not one of the specified statuses
+
+    if (taskDueDate.getTime() === today.getTime() && !['Completed', 'Cancelled / Postponed', 'Delayed (Internal)'].includes(taskStatus)) {
+
+      var personName = data[i][8]; // Assuming the person's name is in column I (index 8)
+
+      var brandName = data[i][5]; // Assuming the brand name is in column F (index 5)
+
+      var taskBrief = data[i][10]; // Assuming the task/brief is in column K (index 10)
+
+ 
+
+ 
+
+ 
+
+      // Add task to the tasksDueTodayByPerson object
+
+    
+
+      // Check if task is due today and status is not one of the specified statuses
+if (taskDueDate.getTime() === today.getTime() && !['Completed', 'Cancelled / Postponed', 'Delayed (Internal)'].includes(taskStatus)) {
+  var personName = data[i][8]; // Assuming the person's name is in column I (index 8)
+  var brandName = data[i][5]; // Assuming the brand name is in column F (index 5)
+  var taskBrief = data[i][10]; // Assuming the task/brief is in column K (index 10)
+  
+  // Format the taskDueDate to a string in 'dd MMM yyyy' format
+  var taskDueDateString = Utilities.formatDate(taskDueDate, Session.getScriptTimeZone(), 'dd MMM yyyy');
+  
+  // Add task to the tasksDueTodayByPerson object
+  if (!tasksDueTodayByPerson[personName]) {
+    tasksDueTodayByPerson[personName] = [];
+  }
+  tasksDueTodayByPerson[personName].push({
+    brandName: brandName,
+    taskBrief: taskBrief,
+    taskDueDate: taskDueDateString // Use the formatted taskDueDate
+  });
+}
+
+
+    }
+
+  }
+
+
+  // Send message to corresponding Teams channel for each person
+  for (var person in webhookUrls) {
+    var webhookUrl = webhookUrls[person];
+    var overdueTasks = tasksByPerson[person] || [];
+    var dueTodayTasks = tasksDueTodayByPerson[person] || [];
+    
+    sendToTeamsChannel(webhookUrl, person, overdueTasks, dueTodayTasks);
+  }
+}
+
+
+
+ 
+
+ 
+
+ 
+
+function getWebhookUrlForPerson(personName, data) {
+
+  for (var i = 1; i < data.length; i++) {
+
+    var nameInSheet = data[i][9]; // Assuming the person's name is in column I (index 8)
+
+    var webhookUrl = data[i][20]; // Assuming the webhook URLs are in column Q (index 16)
+
+    if (personName === nameInSheet) {
+
+      return webhookUrl;
+
+    }
+
+  }
+
+  return null;
+
+}
+
+ 
+
+ 
+
+ 
+
+function sendToTeamsChannel(webhookUrl, personName, overdueTasks, dueTodayTasks) {
+  var message = 'Hi ' + personName + ', here is a quick overdue task report for your reference:\n\n';
+
+  if (overdueTasks.length > 0) {
+    message += 'Overdue tasks:\n';
+    message += formatTasksAsList(overdueTasks) + '\n';
+  }
+
+  if (dueTodayTasks && dueTodayTasks.length > 0) {
+    message += '\nTasks due today:\n';
+    message += formatTasksAsList(dueTodayTasks) + '\n';
+  } else {
+    message += '\nNo tasks found.\n';
+  }
+
+  var payload = {
+    'text': message
+  };
+
+  var options = {
+    'method': 'post',
+    'contentType': 'application/json',
+    'payload': JSON.stringify(payload)
+  };
+
+  try {
+    var response = UrlFetchApp.fetch(webhookUrl, options);
+    Logger.log("Response code: " + response.getResponseCode());
+    Logger.log("Response content: " + response.getContentText());
+  } catch (e) {
+    Logger.log('Error sending message for: ' + personName + ', Error: ' + e);
+  }
+}
+
+function formatTasksAsList(tasks) {
+  var formattedMessage = '';
+  for (var i = 0; i < tasks.length; i++) {
+    var task = tasks[i];
+    formattedMessage += (i + 1) + '. ' + task.brandName + ' - ' + task.taskBrief + ' - ' + task.taskDueDate + '\n';
+  }
+  return formattedMessage;
+}
