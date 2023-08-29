@@ -28,8 +28,11 @@ function processPersonData(personName, data, webhookUrls) {
       var milestoneDate = new Date(data[i][6 + (milestone - 1) * 2]); // Assuming milestone dates are in columns G, I, K (indexes 6, 8, 10)
       var milestoneStatus = data[i][7 + (milestone - 1) * 2]; // Assuming milestone status is in columns H, J, L (indexes 7, 9, 11)
 
-      if (milestoneDate <= today && !['Completed', 'Cancelled', 'Delayed'].includes(milestoneStatus)) {
-        var personName = data[i][5]; // Assuming the person's name is in column F (index 5)
+      var statusColumnIndex = 7 + (milestone - 1) * 2; // Assuming milestone status columns are H, J, L
+      var isStatusEmpty = milestoneStatus === '';
+      
+
+      if (milestoneDate <= today && isStatusEmpty) {
         var brandName = data[i][0]; // Assuming the brand name is in column A (index 0)
         var deliverable = data[i][4]; // Assuming the deliverable is in column E (index 4)
 
