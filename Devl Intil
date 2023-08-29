@@ -1,0 +1,87 @@
+
+
+function sendNotifications() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Deliverables');
+  var data = sheet.getDataRange().getValues();
+
+  var webhookUrls = {
+     'Abhihaas': 'https://obladicreatives.webhook.office.com/webhookb2/3cb0cfa6-150d-4350-bb29-275e37556302@a5a778a6-b059-4e44-a4b1-4afce2dcdcf6/IncomingWebhook/2f564b6021c14174bc936c27603da911/6469a637-11c4-4403-aba4-5c1d6b01f777',
+  };
+
+  var overdueMilestonesByPerson = {}; // Object to store overdue milestones for each person
+
+  var today = new Date();
+  today.setHours(0, 0, 0, 0); // Set time to start of the day
+
+  for (var i = 1; i < data.length; i++) {
+    for (var milestone = 1; milestone <= 3; milestone++) {
+      var milestoneDate = new Date(data[i][6 + (milestone - 1) * 2]); // Assuming milestone dates are in columns G, I, K (indexes 6, 8, 10)
+      var milestoneStatus = data[i][7 + (milestone - 1) * 2]; // Assuming milestone status is in columns H, J, L (indexes 7, 9, 11)
+
+      // Check if milestone is upcoming and status is not one of the specified statuses
+      if (milestoneDate >= today && !['Completed', 'Cancelled', 'Delayed'].includes(milestoneStatus)) {
+        var personName = data[i][5]; // Assuming the person's name is in column E (index 4)
+        var brandName = data[i][0]; // Assuming the brand name is in column A (index 0)
+
+        // Add milestone to the overdueMilestonesByPerson object
+        if (!overdueMilestonesByPerson[personName]) {
+          overdueMilestonesByPerson[personName] = [];
+        }
+
+        overdueMilestonesByPerson[personName].push({
+          brandName: brandName,
+          milestone: 'Milestone ' + milestone,
+          milestoneDate: Utilities.formatDate(milestoneDate, Session.getScriptTimeZone(), 'dd MMM yyyy')
+        });
+      }
+    }
+  }
+
+  // Send message to corresponding Teams channel for each person
+  for (var person in webhookUrls) {
+    var webhookUrl = webhookUrls[person];
+    var overdueMilestones = overdueMilestonesByPerson[person] || [];
+
+    if (overdueMilestones.length > 0) {
+      sendToTeamsChannel(webhookUrl, person, overdueMilestones);
+    }
+  }
+}
+
+function sendToTeamsChannel(webhookUrl, personName, overdueMilestones) {
+  var message = 'Hey ' + personName + ', here is a quick overdue MONTHLY DELIVERABLES report for your reference:\n\n';
+
+  if (overdueMilestones.length > 0) {
+    message += formatMilestonesAsList(overdueMilestones) + '\n';
+  } else {
+    message += 'No overdue milestones found.\n';
+  }
+
+  var payload = {
+    'text': message
+  };
+
+  var options = {
+    'method': 'post',
+    'contentType': 'application/json',
+    'payload': JSON.stringify(payload)
+  };
+
+  try {
+    UrlFetchApp.fetch(webhookUrl, options);
+  } catch (e) {
+    Logger.log('Error sending message for: ' + personName + ', Error: ' + e);
+  }
+}
+
+function formatMilestonesAsList(milestones) {
+  var formattedMessage = '';
+
+  for (var i = 0; i < milestones.length; i++) {
+    var milestone = milestones[i];
+
+    formattedMessage += (i + 1) + '. ' + milestone.brandName + ' - ' + milestone.milestone + ' - ' + milestone.milestoneDate + '\n';
+  }
+
+  return formattedMessage;
+}
